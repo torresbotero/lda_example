@@ -155,13 +155,6 @@ public class App
         	System.out.println("");
         }
         
-        System.out.println("test something");
-        int[] test1 = dt[15];
-        for(int i = 0; i < test1.length; i++){
-        	System.out.println("test1[i]: " + test1[i]);
-        }
-        System.out.println("dt[i]: " + dt[15] + 1);
-        
         //runnings the Gibbs sampler
         
         //These two variables will keep track of the topic assignments
@@ -195,9 +188,81 @@ public class App
         		//calculate new assignment
         		//according to the formuala
         		
+        		int[] wordNumerator = new int[wt[wIdx].length];
+        		for(int wn = 0; wn < wt[wIdx].length; wn++){
+        			wordNumerator[wn] = wt[wIdx][wn] + beta;
+        		}
         		
+        		int[] wordDenominator = new int[wt[wIdx].length];
+        		for(int wdx = 0; wdx < wt.length; wdx++){
+        			for(int wdy = 0; wdy < wt[wdx].length; wdy++){
+        				wordDenominator[wdy] = wordDenominator[wdy] + wt[wdx][wdy] + (VOCAB.length * beta);
+        			}
+        		}
+        		
+        		double[] probWord = new double[wt[wIdx].length];
+        		for(int pw = 0; pw < wt[wIdx].length; pw++){
+        			probWord[pw] = (double)wordNumerator[pw]/(double)wordDenominator[pw];
+        		}
+        		
+        		int[] docNumerator = new int[dt[docIdx].length];
+        		for(int dn = 0; dn < dt[docIdx].length; dn++){
+        			docNumerator[dn] = dt[docIdx][dn] + alpha;
+        		}
+        		
+        		int[] docDenominator = new int[dt[docIdx].length];
+        		for(int ddx = 0; ddx < dt.length; ddx++){
+        			for(int ddy = 0; ddy < dt[ddx].length; ddy++){
+        				docDenominator[ddy] = docDenominator[ddy] + dt[ddx][ddy] + (D * alpha);
+        			}
+        		}
+        		
+        		double[] probDocument = new double[dt[docIdx].length];
+        		for(int pd = 0; pd < dt[docIdx].length; pd++){
+        			probDocument[pd] = (double)docNumerator[pd]/(double)docDenominator[pd];
+        		}
+        		
+        		double[] prob = new double[T];
+        		double probSum = 0;
+        		for(int pr = 0; pr < T; pr++){
+        			prob[pr] = probWord[pr] * probDocument[pr];
+        			probSum = probSum + prob[pr];
+        		}
+        		
+        		double[] totalProb = new double[T];
+        		for(int pt = 0; pt < T; pt++){
+        			totalProb[pt] = prob[pt]/probSum;
+        		}
+        		
+        		int ziCurrent = 0;
+        		if(totalProb[0] > totalProb[1]){
+        			ziCurrent = 0;
+        		} else {
+        			ziCurrent = 1;
+        		}
+        		
+        		zi.set(current, ziCurrent);
+        		
+        		dt[docIdx][zi.get(current)] = dt[docIdx][zi.get(current)] + 1;
+        		wt[wIdx][zi.get(current)] = wt[wIdx][zi.get(current)] + 1;
         		
         	}
+        }
+        
+        System.out.println("WT updated:");
+        for(int i = 0; i < wt.length; i++){
+        	for(int j = 0; j < wt[i].length; j++){
+        		System.out.print(wt[i][j] + ", ");
+        	}
+        	System.out.println("");
+        }
+        
+        System.out.println("DT updated:");
+        for(int i = 0; i < dt.length; i++){
+        	for(int j = 0; j < dt[i].length; j++){
+        		System.out.print(dt[i][j] + ", ");
+        	}
+        	System.out.println("");
         }
         
         
